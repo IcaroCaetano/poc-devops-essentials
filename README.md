@@ -177,6 +177,7 @@ tofu version
 ## Estrutura do tofu
 
 ````shell
+
 project-root/
 ├── helm/
 │   └── springboot-chart/
@@ -188,3 +189,21 @@ project-root/
 
 ````
 
+### Acessar a aplicação em:
+
+````yaml
+
+http://localhost:8080/actuator/prometheus
+````
+### ✅ Adicionar prometheus e grafana via Helm ao minikube
+
+Adicionar os repositórios e atualize dependências
+
+````yaml
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+cd helm/springboot-chart
+helm dependency update
+
+````
