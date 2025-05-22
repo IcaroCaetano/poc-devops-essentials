@@ -10,7 +10,7 @@ pipeline {
     }
 
     tools {
-        maven 'Maven_3.9'  // Certifique-se de configurar no Jenkins com esse nome
+        maven 'Maven_3.9'
     }
 
     stages {
