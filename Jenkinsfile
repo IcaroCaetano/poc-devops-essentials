@@ -36,7 +36,7 @@ pipeline {
 
         stage('Deploy with Helm to Minikube') {
             steps {
-                sh 'helm upgrade --install poc-app helm/springboot-chart --namespace apps --create-namespace'
+                sh 'helm upgrade --install poc-app helm/springboot-chart --namespace app --create-namespace -f helm/springboot-chart/values.yaml'
             }
         }
 
@@ -45,7 +45,7 @@ pipeline {
                 dir('tofu') {
                     sh 'tofu init'
                     sh 'tofu validate'
-                    sh 'tofu plan -out=tfplan'
+                    sh 'tofu plan -detailed-exitcode -out=tfplan'
                 }
             }
         }
@@ -53,10 +53,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deploy concluído com sucesso!'
+            echo 'Deployment completed successfully!'
         }
         failure {
-            echo 'Falha na pipeline.'
+            echo 'Pipeline failure.'
         }
     }
 }

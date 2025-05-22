@@ -1,0 +1,30 @@
+# values/prometheus-values.yaml
+
+alertmanager:
+  enabled: true
+
+grafana:
+  enabled: false  # desativa o Grafana incluso nesse chart, pois você o instalará separadamente
+
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    scrapeInterval: 30s
+    serviceMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheusOperator:
+  enabled: true
+
