@@ -1,5 +1,9 @@
+---
+# =============================
+# 2. Helm Chart
+# =============================
+# helm/springboot-chart/Chart.yaml
 apiVersion: v2
-name: springboot-app
-description: A Helm chart for Spring Boot application
+name: springboot-chart
 version: 0.1.0
-appVersion: "1.0"
+description: A Helm chart for Spring Boot App

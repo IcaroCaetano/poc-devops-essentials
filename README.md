@@ -1,209 +1,237 @@
-## Vamos montar um projeto Java 21 com Spring Boot Hello World, e integrar as ferramentas:
+# 🌐 poc-devops-essentials
 
-- ✅ Docker - (empacotar a aplicação)
+### A fully containerized DevOps-ready Java 21 application with CI/CD, infrastructure as code, monitoring, and Kubernetes deployments using:
 
-- ✅ Jenkins (CI/CD)
+- Java 21 + Spring Boot 3 (Maven)
+- Jenkins (CI/CD pipeline)
+- Docker (image creation and local testing)
+- Helm (Kubernetes application deployment)
+- Minikube (local Kubernetes cluster)
+- OpenTofu (Infrastructure as Code)
+- Prometheus + Grafana (Observability & Monitoring)
+- Kubernetes Namespaces (for isolation of infra and apps)
+- Spring Actuator (`/actuator`, `/actuator/prometheus`)
 
-- ✅ Helm (gerenciar o deployment no Kubernetes)
+---
 
-- ✅ OpenTofu (infra como código – fork do Terraform)
+## 📌 Project Features
 
-- ✅ Minikube ou outro gerenciador de cluster Kubernetes (cluster local Kubernetes)
+- Exposes a single endpoint: `GET /hello` → `"Hello, Java 21!"`
+- Export Prometheus metrics through Spring Boot Actuator
+- Deployable to Kubernetes using Helm
+- Infrastructure provisioned using OpenTofu
+- Fully integrated with Jenkins pipelines (CI/CD)
 
-- ✅ Prometheus + Grafana (monitoramento)
+---
 
-- ✅ Spring Boot com Actuator e endpoint /hello
+## 🧰 Requirements
 
+### 🖥️ Install on **Windows 11** or **macOS**
 
-## ✅ Instalar o Chocolatey (caso não tenha)
-Abra o PowerShell como administrador
+| Tool             | Windows Installation                                | macOS Installation                        |
+|------------------|-----------------------------------------------------|-------------------------------------------|
+| **Java 21**      | [Download](https://jdk.java.net/21/) and set `JAVA_HOME` | Use `brew install openjdk@21`             |
+| **Maven**        | [Download](https://maven.apache.org/)               | `brew install maven`                      |
+| **Docker Desktop** | [Download for Windows](https://www.docker.com/products/docker-desktop/) | `brew install --cask docker`              |
+| **Minikube**     | `choco install minikube`                            | `brew install minikube`                   |
+| **Kubectl**      | `choco install kubernetes-cli`                      | `brew install kubectl`                    |
+| **Helm**         | `choco install kubernetes-helm`                     | `brew install helm`                       |
+| **OpenTofu**     | `scoop install opentofu` or [manual](https://opentofu.org) | `brew install opentofu`                   |
+| **Jenkins**      | Run via Docker (see below)                          | Run via Docker (see below)                |
 
-Execute este comando:
+---
 
-```shell
+## 🚀 Running Locally
 
-Set-ExecutionPolicy Bypass -Scope Process -Force; `
-[System.Net.ServicePointManager]::SecurityProtocol = `
-    [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
-iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-```
+### 1. Start Minikube
 
-Depois disso, digite choco -v novamente para confirmar.
-
-```shell
-
-choco -v
-```
-## ✅ Instalar o Docker
-
-````shell
-
-choco install docker-desktop
-````
-
-Verificar instalação:
-
-````shell
-
-docker --version
-````
-
-## ✅ Instalar o Minikube
-
-````shell
-
-choco install minikube
-````
-Verficar instalação:
-
-````shell
-
-minikube version
-````
-
-## ✅ Instalar o kubectl
-
-`````shell
-
-choco install kubernetes-cli
-`````
-    
-Verificar instalação:
-
-````shell
-
-kubectl version --client
-````
-
-## ✅ Iniciar o cluster
-
-Podemos iniciar o Minikube com o driver Docker, VirtualBox ou Hyper-V.
-
-Com Docker (mais comum com Windows + WSL2):
-
-- Primeiro execute o Docker desktop
-
-- Verifique se o Daemon está ativo:
-
-````shell
-
-docker info
-````
-
-## 🧩 Em conjunto:
-
-Você cria sua aplicação Java (ex: Spring Boot).
-
-Empacota em um Docker image.
-
-Usa o Minikube para rodar um cluster local.
-
-Usa o Helm para instalar e gerenciar sua aplicação nesse cluster de forma prática e reutilizável.
-
-- Iniciar o minikuber
-
-````shell
+```yaml
 
 minikube start --driver=docker
+```
+
+### Set Docker to use Minikube's internal Docker daemon:
+
+````yaml
+
+minikube -p minikube docker-env --shell powershell | Invoke-Expression  # Windows PowerShell
+# OR
+eval $(minikube -p minikube docker-env)  # macOS/Linux
 ````
 
-## ✅ Após iniciar o Minikube com sucesso:
+### 2. Build Docker Image
 
-Teste se o cluster está rodando:
-
-````shell
-
-kubectl get nodes
+````yaml
+docker build -t poc-devops-essentials:latest .
 ````
 
-Habilite o Ingress (caso vá expor sua aplicação localmente):
+### 3. Create Namespaces
 
-````shell
-
-minikube addons enable ingress
+````yaml
+kubectl create namespace infrastructure
+kubectl create namespace application
 ````
 
-Build da imagem:
+### 4. Deploy Monitoring (Prometheus + Grafana)
 
-````shell
+````yaml
 
-minikube image build -t springboot-app:latest .
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm install monitoring prometheus-community/kube-prometheus-stack \ --namespace infrastructure --create-namespace
+````
+
+### 🔍 After deployment:
+
+Grafana: http://localhost:<PORT> (use minikube service to expose)
+
+Prometheus: http://localhost:<PORT>
+
+### 5. Deploy Application via Helm
+
+````yaml
+
+helm install poc-devops-app ./helm/springboot-chart --namespace application
+````
+Expose the service:
+
+````yaml
+minikube service poc-devops-app --namespace application
+````
+
+Test endpoint:
+
+````yaml
+
+curl http://<EXPOSED-IP>:<PORT>/hello
+````
+
+### 6. Run Jenkins in Docker
+
+````bash
+
+docker run -d -p 8081:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v //var/run/docker.sock:/var/run/docker.sock \
+  -v "%cd%":/var/jenkins_home/workspace \
+  --name jenkins-devops jenkins/jenkins:lts
+
+````
+Access Jenkins at: http://localhost:8081
+
+### 7. Jenkins Pipeline (Jenkinsfile)
+The pipeline performs the following:
+
+- Installs dependencies
+
+- Runs unit tests
+
+- Builds Docker image
+
+- Deploys to Minikube via Helm
+
+````groovy
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t poc-devops-essentials:latest .'
+            }
+        }
+        stage('Helm Deploy') {
+            steps {
+                sh 'helm upgrade --install poc-devops-app ./helm/springboot-chart --namespace application'
+            }
+        }
+    }
+}
 
 ````
 
-## ✅ Instalação do Helm Chart:
+## 📦 Project Structure
 
-````shell
-
-helm install springboot-app ./helm/springboot-chart
-
-````
-
-Acesso à aplicação:
-
-````shell
-
-minikube service springboot-app
-
-````
-
-## Estrutura do Helm 
-
-````shell
-
-helm/
-└── springboot-chart/
-    ├── Chart.yaml
-    └── templates/
-        ├── deployment.yaml
-        └── service.yaml
-
-````
-
-## ✅ Instalação do Opentofu Para Windows (via Chocolatey):
-
-````shell
-
-choco install opentofu
-````
-
-Verifique:
-
-````shell
-
-tofu version
-````
-
-## Estrutura do tofu
-
-````shell
+````css
 
 project-root/
-├── helm/
-│   └── springboot-chart/
+├── src/
+│   └── main/java/com/.../HelloController.java
 ├── tofu/
 │   ├── main.tf
-│   ├── providers.tf
 │   ├── variables.tf
-│   └── values.yaml
+│   └── providers.tf
+├── helm/
+│   └── springboot-chart/
+│       ├── templates/
+│       │   ├── deployment.yaml
+│       │   └── service.yaml
+│       └── Chart.yaml
+├── Jenkinsfile
+├── Dockerfile
+└── README.md
 
 ````
 
-### Acessar a aplicação em:
+## 📊 Observability (Grafana & Prometheus)
 
-````yaml
+The application is configured to expose metrics at:
 
-http://localhost:8080/actuator/prometheus
+- /actuator/prometheus
+
+- /actuator/health
+
+- /actuator/info
+
+Grafana dashboards can be configured to scrape Prometheus which pulls from the application's /actuator/prometheus.
+
+## 📄 OpenTofu (Infrastructure as Code)
+
+Initialize and apply your infrastructure:
+
+````bash
+
+cd tofu
+tofu init
+tofu plan
+tofu apply
+
 ````
-### ✅ Adicionar prometheus e grafana via Helm ao minikube
+You can write OpenTofu tests using the terratest framework or tools like infracost or opa.
 
-Adicionar os repositórios e atualize dependências
+## 🔐 Security Notes
 
-````yaml
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo update
-cd helm/springboot-chart
-helm dependency update
+- Secure Jenkins with an admin password
 
-````
+- Rotate Docker/Helm tokens if used
+
+- Consider using Kubernetes secrets for production
+
+## ✅ Final Checklist
+ 
+- One /hello endpoint
+
+- CI/CD working with Jenkins
+
+- Monitoring via Prometheus/Grafana
+
+- Helm deployments into two namespaces
+
+- Local cluster with Minikube
+
+- Docker image built and deployed
+
+- Infrastructure managed with OpenTofu
+

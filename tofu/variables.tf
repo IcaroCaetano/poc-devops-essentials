@@ -1,4 +1,5 @@
+# tofu/variables.tf
 variable "namespace" {
   type    = string
-  default = "poc-devops-essencials"
+  default = "app"
 }

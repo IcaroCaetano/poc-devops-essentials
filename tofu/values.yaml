@@ -1,10 +1,5 @@
+# tofu/values.yaml (for future values override)
 replicaCount: 1
-
 image:
   repository: poc-devops-essentials
   tag: latest
-  pullPolicy: IfNotPresent
-
-service:
-  type: ClusterIP
-  port: 8080

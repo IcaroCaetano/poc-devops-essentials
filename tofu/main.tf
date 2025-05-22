@@ -1,16 +1,15 @@
-resource "kubernetes_namespace" "app_namespace" {
+# =============================
+# 3. OpenTofu Infra
+# =============================
+# tofu/main.tf
+resource "kubernetes_namespace" "infra" {
   metadata {
-    name = var.namespace
+    name = "infra"
   }
 }
 
-resource "helm_release" "springboot" {
-  name       = "springboot-app"
-  chart      = "${path.module}/../helm/springboot-chart"
-  namespace  = kubernetes_namespace.app_namespace.metadata[0].name
-  create_namespace = false
-
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+resource "kubernetes_namespace" "app" {
+  metadata {
+    name = "app"
+  }
 }

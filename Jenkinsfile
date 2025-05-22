@@ -1,69 +1,62 @@
+# =============================
+# 1. Jenkinsfile
+# =============================
 pipeline {
     agent any
 
     environment {
         IMAGE_NAME = "poc-devops-essentials"
-        TAG = "latest"
-        REGISTRY = "localhost:5000"
+        IMAGE_TAG = "latest"
+    }
+
+    tools {
+        maven 'Maven_3.9'  // Certifique-se de configurar no Jenkins com esse nome
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://seu-repositorio.git'
+                checkout scm
             }
         }
 
-        stage('Build Maven') {
+        stage('Build & Test') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean verify'
             }
         }
 
-        stage('Run Tests') {
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Docker Build & Push') {
-            steps {
-                sh 'docker build -t $REGISTRY/$IMAGE_NAME:$TAG .'
-                sh 'docker push $REGISTRY/$IMAGE_NAME:$TAG'
-            }
-        }
-
-        stage('OpenTofu Infra Provision') {
-            steps {
-                dir('tofu') {
-                    sh 'tofu init'
-                    sh 'tofu apply -auto-approve'
+                script {
+                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                 }
             }
         }
 
-        stage('Deploy com Helm') {
+        stage('Deploy with Helm to Minikube') {
             steps {
-                dir('helm/springboot-chart') {
-                    sh """
-                        helm upgrade --install $IMAGE_NAME . \
-                        --set image.repository=$REGISTRY/$IMAGE_NAME \
-                        --set image.tag=$TAG
-                    """
+                sh 'helm upgrade --install poc-app helm/springboot-chart --namespace apps --create-namespace'
+            }
+        }
+
+        stage('Terraform (OpenTofu) Validate') {
+            steps {
+                dir('tofu') {
+                    sh 'tofu init'
+                    sh 'tofu validate'
+                    sh 'tofu plan -out=tfplan'
                 }
             }
         }
     }
 
     post {
-        always {
-            echo 'Pipeline finalizado'
-        }
         success {
-            echo 'Deploy realizado com sucesso!'
+            echo 'Deploy concluído com sucesso!'
         }
         failure {
-            echo 'Falha no pipeline.'
+            echo 'Falha na pipeline.'
         }
     }
 }
