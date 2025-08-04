@@ -235,3 +235,146 @@ You can write OpenTofu tests using the terratest framework or tools like infraco
 
 - Infrastructure managed with OpenTofu
 
+
+# 📦 Helm Overview for Kubernetes Projects
+
+## 🔧 What is Helm?
+
+**Helm** is a **package manager for Kubernetes**, just like `apt` for Ubuntu or `yum` for CentOS. It helps you **package, configure, and deploy Kubernetes applications** in a standardized and reusable way.
+
+---
+
+## 🧱 Why Use Helm?
+
+Deploying an application in Kubernetes often requires several YAML files:
+
+- `Deployment.yaml`
+- `Service.yaml`
+- `ConfigMap.yaml`
+- `Ingress.yaml`
+- etc.
+
+Maintaining these files can become difficult, especially across multiple environments (dev, staging, prod). Helm solves this by allowing you to group all resources into a single **Helm Chart**.
+
+### Helm Chart Structure:
+
+| File/Folder       | Purpose |
+|------------------|---------|
+| `Chart.yaml`     | Helm package metadata (name, version, description). |
+| `values.yaml`    | Default configuration values (replica count, image, ports, etc). |
+| `templates/`     | YAML templates with variables (`{{ }}`) to be rendered with `values.yaml`. |
+
+---
+
+## ⚙️ How Helm Works
+
+### Example from This Project:
+
+**Chart.yaml**
+```yaml
+name: springboot-app
+version: 0.1.0
+appVersion: "1.0"
+```
+
+**values.yaml**
+
+```yaml
+replicaCount: 1
+image:
+  repository: poc-devops-essentials
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+
+```
+
+**templates/deployment.yaml**
+
+````yaml
+image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+````
+
+Helm will:
+
+1. Read values.yaml
+
+2. Replace template variables in templates/
+
+3. Generate Kubernetes manifests
+
+4. Apply them via the Kubernetes API
+
+
+## 📦 Using Helm to Install Prometheus/Grafana
+
+You can install popular tools like Prometheus and Grafana using community charts:
+
+````yaml
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install prometheus prometheus-community/kube-prometheus-stack
+````
+
+This installs Prometheus, Grafana, Alertmanager, CRDs, RBAC configs, etc., without manually writing YAML. Configuration is done via values.yaml.
+
+
+## 🧩 Integration with This Java 
+
+Your Spring Boot app is:
+
+- Dockerized
+
+- Deployed to Minikube using a Helm chart:
+
+````yaml
+helm install springboot ./helm/springboot-chart
+````
+
+With Helm, you can manage:
+
+- Scalability (via replicaCount)
+
+- Service type and port
+
+- Monitoring integration (Prometheus annotations or ServiceMonitor)
+
+- Ingress rules (custom domains)
+
+
+Overriding config at install time:
+
+
+````yaml
+helm install springboot ./helm/springboot-chart \
+  --set image.tag=v2.0 \
+  --set service.port=8081
+````
+
+## ✅ Benefits of Helm
+
+Benefit	                        Description
+Template reusability	        One chart works across all environments.
+Configurable via values.yaml	Easily change behavior without touching YAMLs.
+Simple installation	            One command installs everything.
+Easy uninstallation	            helm uninstall removes all resources.
+CI/CD friendly	                Works well with GitHub Actions, GitLab CI, ArgoCD, etc.
+
+
+## 📎 Useful Helm Commands
+````yaml
+# Install or upgrade a release
+helm install myapp ./mychart
+helm upgrade myapp ./mychart
+
+# Uninstall
+helm uninstall myapp
+
+# Dry-run to preview rendered manifests
+helm template myapp ./mychart
+
+# Lint your chart
+helm lint ./mychart
+
+````
