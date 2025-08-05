@@ -235,6 +235,7 @@ You can write OpenTofu tests using the terratest framework or tools like infraco
 
 - Infrastructure managed with OpenTofu
 
+-----------------------------------------------------------------------------------
 
 # 📦 Helm Overview for Kubernetes Projects
 
@@ -378,3 +379,159 @@ helm template myapp ./mychart
 helm lint ./mychart
 
 ````
+
+🌱 OpenTofu - Infrastructure as Code
+
+## 🔧 What is OpenTofu?
+
+**OpenTofu** is an **open-source Infrastructure as Code (IaC)** tool used to **provision, manage, and automate cloud infrastructure**. It was created as a **community-driven fork of Terraform**, after HashiCorp changed Terraform’s license to a more restrictive model (BUSL).
+
+OpenTofu uses declarative `.tf` configuration files to define and manage infrastructure resources on major cloud providers like AWS, GCP, Azure, and more.
+
+---
+
+# 🌱 OpenTofu - Infrastructure as Code
+
+## 🔧 What is OpenTofu?
+
+**OpenTofu** is an **open-source Infrastructure as Code (IaC)** tool used to **provision, manage, and automate cloud infrastructure**. It was created as a **community-driven fork of Terraform**, after HashiCorp changed Terraform’s license to a more restrictive model (BUSL).
+
+OpenTofu uses declarative `.tf` configuration files to define and manage infrastructure resources on major cloud providers like AWS, GCP, Azure, and more.
+
+---
+
+## 🧠 How does OpenTofu work?
+
+OpenTofu reads `.tf` files and:
+
+1. Parses and validates your configuration.
+2. Builds a **dependency graph** of resources.
+3. Compares the **desired state** (from code) with the **current state** (from cloud).
+4. Applies changes to reach the desired state.
+
+It maintains a **state file** (`terraform.tfstate`) to keep track of resources and changes over time.
+
+---
+
+## ⚙️ Key Commands
+
+```bash
+tofu init        # Initialize the working directory
+tofu plan        # Preview infrastructure changes
+tofu apply       # Apply the infrastructure changes
+tofu destroy     # Destroy all managed resources
+```
+
+---
+
+## 📦 Example
+
+### main.tf
+
+```hcl
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "web" {
+  ami           = "ami-123456"
+  instance_type = "t2.micro"
+}
+```
+
+### Apply the configuration
+
+```bash
+tofu init
+tofu plan
+tofu apply
+```
+
+---
+
+## ⚖️ OpenTofu vs Terraform
+
+| Feature              | Terraform (HashiCorp) | OpenTofu (Community)         |
+|----------------------|------------------------|-------------------------------|
+| License              | BUSL (restrictive)     | MPL 2.0 (true open-source)    |
+| Governance           | Proprietary            | Community-driven (Linux Foundation) |
+| Compatibility        | Yes (Terraform v1.5)   | Yes (full compatibility)      |
+| Future contributions | Controlled by company  | Open to the community         |
+
+---
+
+## 🔐 Security & Best Practices
+
+- Supports **remote state** (e.g., S3 + DynamoDB locking).
+- Manages **sensitive values** with `sensitive = true`.
+- Encourages **modular design** for reusable infrastructure code.
+- Easily integrates into **CI/CD pipelines**.
+
+---
+
+## 🧩 How it fits in a Kubernetes + Helm stack
+
+You can use OpenTofu to:
+
+- Provision Kubernetes clusters (EKS, GKE, AKS, etc.)
+- Create VPCs, networks, firewalls, IAM roles
+- Set up DNS, databases, buckets, etc.
+
+Then use **Helm** to deploy applications on top of that infrastructure.
+
+```bash
+# Provision infrastructure
+tofu apply
+
+# Deploy app with Helm
+helm install myapp ./helm/springboot-chart
+```
+
+---
+
+## ✅ Benefits of Using OpenTofu
+
+| Benefit                         | Description                                              |
+|----------------------------------|----------------------------------------------------------|
+| Declarative configuration       | Define what you want, not how to do it                   |
+| Idempotent execution            | Safe to run repeatedly without duplicating resources     |
+| Version-controlled infrastructure | Store code in Git and track changes                     |
+| Modular and reusable            | Write once, use everywhere                              |
+| Community-driven                | Transparent roadmap and governance                      |
+
+---
+
+## 📁 Typical Project Structure
+
+```bash
+infra/
+├── main.tf             # Main infrastructure definition
+├── variables.tf        # Input variables
+├── outputs.tf          # Exported values
+├── terraform.tfvars    # Variable values
+└── backend.tf          # Remote backend configuration
+```
+
+---
+
+## 🔗 Learn More
+
+- 🌐 https://opentofu.org/
+- 📘 https://developer.hashicorp.com/terraform/language
+- 🤝 https://github.com/opentofu
+
+---
+
+## 🚀 Getting Started Locally
+
+1. [Install OpenTofu](https://opentofu.org/docs/install/)
+2. Create `.tf` configuration files
+3. Run:
+
+```bash
+tofu init
+tofu plan
+tofu apply
+```
+
+Enjoy managing your infrastructure as code with freedom and community support!
