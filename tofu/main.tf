@@ -22,7 +22,7 @@ resource "helm_release" "prometheus" {
 
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
-  version          = "51.2.0" # ou outra versão compatível
+  version          = "51.2.0"
 
   values = [
     file("${path.module}/values/prometheus-values.yaml")
@@ -36,7 +36,7 @@ resource "helm_release" "grafana" {
 
   repository       = "https://grafana.github.io/helm-charts"
   chart            = "grafana"
-  version          = "7.3.7" # ou outra versão desejada
+  version          = "7.3.7"
 
   values = [
     file("${path.module}/values/grafana-values.yaml")

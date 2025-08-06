@@ -1,7 +1,7 @@
 # values/grafana-values.yaml
 
 adminUser: admin
-adminPassword: admin123  # Não use isso em produção
+adminPassword: admin123
 
 service:
   type: ClusterIP
